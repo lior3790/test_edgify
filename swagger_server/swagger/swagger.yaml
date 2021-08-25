@@ -1,0 +1,143 @@
+openapi: 3.0.1
+info:
+  title: Swagger Edgify Trading
+  description: This is a simple test application for trading server.
+  termsOfService: https://www.edgify.ai/about-us/
+  contact:
+    email: lior3790@gmail.com
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.0
+servers:
+- url: http://127.0.0.1:8080/v2
+tags:
+- name: trade
+  description: Trading operations
+  externalDocs:
+    description: Find out more
+    url: http://swagger.io
+paths:
+  /trade:
+    post:
+      tags:
+      - trade
+      summary: Upload trade orders
+      operationId: trade_csv
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/trade_body'
+      responses:
+        "100":
+          description: Invalid CSV supplied
+          content: {}
+        "104":
+          description: Trade not found
+          content: {}
+        "105":
+          description: Validation exception
+          content: {}
+        "200":
+          description: Trade order results
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SingleOrder'
+                x-content-type: application/json
+      security:
+      - api_key: []
+      x-openapi-router-controller: swagger_server.controllers.trade_controller
+components:
+  schemas:
+    SingleOrder:
+      type: object
+      properties:
+        id:
+          type: string
+        orderInfo:
+          $ref: '#/components/schemas/OrderInfo'
+      example:
+        orderInfo:
+          amount: 0
+          total: 1
+          price: 6
+          orders:
+          - amount: 5
+            order: order
+          - amount: 5
+            order: order
+          status: Executed
+        id: id
+    OrderInfo:
+      type: object
+      properties:
+        status:
+          type: string
+          description: Order Status
+          enum:
+          - Executed
+          - Denied
+          - null
+        amount:
+          type: integer
+          format: int32
+        price:
+          multipleOf: 0.00010
+          type: integer
+        total:
+          multipleOf: 0.01
+          type: integer
+        orders:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderInfo_orders'
+      example:
+        amount: 0
+        total: 1
+        price: 6
+        orders:
+        - amount: 5
+          order: order
+        - amount: 5
+          order: order
+        status: Executed
+      xml:
+        name: OrderInfo
+    trade_body:
+      type: object
+      properties:
+        csv_file:
+          type: string
+          format: binary
+    OrderInfo_orders:
+      type: object
+      properties:
+        order:
+          type: string
+        amount:
+          type: integer
+          format: int32
+      example:
+        amount: 5
+        order: order
+  securitySchemes:
+    trader_auth:
+      type: oauth2
+      flows:
+        implicit:
+          authorizationUrl: http://Edgify.swagger.io/oauth/dialog
+          scopes:
+            write:trades: write trades to the system
+            read:trades: read your trades
+      x-tokenInfoFunc: swagger_server.controllers.authorization_controller.check_trader_auth
+      x-scopeValidateFunc: swagger_server.controllers.authorization_controller.validate_scope_trader_auth
+    api_key:
+      type: apiKey
+      name: api_key
+      in: header
+      x-apikeyInfoFunc: swagger_server.controllers.authorization_controller.check_api_key
+
