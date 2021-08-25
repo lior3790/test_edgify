@@ -47,3 +47,7 @@ docker build -t swagger_server .
 # starting up a container
 docker run -p 8080:8080 swagger_server
 ```
+
+## Run a test with
+curl -X 'POST'   'http://172.17.0.2:8080/v2/trade'   -H 'accept: application/json'   -H 'api_key: qwe123'   -H 'Content-Type: multipart/form-data'   -F 'csv_file=@testTrade.csv;type=text/csv'
+
